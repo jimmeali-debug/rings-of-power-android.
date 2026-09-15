@@ -28,13 +28,11 @@ jobs:
           cache: gradle
           cache-dependency-path: upstream/**/*.gradle*
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Build debug APKs
         working-directory: upstream
         run: |
           chmod +x gradlew
+          yes | sdkmanager --licenses >/dev/null || true
           ./gradlew assembleDebug --stacktrace
 
       - name: Collect APKs
