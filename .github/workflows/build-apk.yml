@@ -1,4 +1,4 @@
-name: Build compatibility APK
+name: Build Rings of Power Android APK
 
 on:
   workflow_dispatch:
@@ -28,23 +28,33 @@ jobs:
           cache: gradle
           cache-dependency-path: upstream/**/*.gradle*
 
-      - name: Build debug APKs
+      - name: Apply Rings of Power configuration
+        working-directory: upstream
+        run: |
+          sed -i 's/applicationId = "com.swordfish.lemuroid"/applicationId = "com.jimmeali.ringsofpower"/' lemuroid-app/build.gradle.kts
+          sed -i 's/resValue("string", "lemuroid_name", "LemuroiDebug")/resValue("string", "lemuroid_name", "Rings of Power")/' lemuroid-app/build.gradle.kts
+          sed -i 's/versionNameSuffix = "-DEBUG"/versionNameSuffix = "-RINGS-ALPHA"/' lemuroid-app/build.gradle.kts
+          grep -q 'com.jimmeali.ringsofpower' lemuroid-app/build.gradle.kts
+          grep -q 'Rings of Power' lemuroid-app/build.gradle.kts
+
+      - name: Build standalone APK
         working-directory: upstream
         run: |
           chmod +x gradlew
           yes | sdkmanager --licenses >/dev/null || true
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew :lemuroid-app:assembleFreeBundleDebug --stacktrace
 
-      - name: Collect APKs
+      - name: Collect named APK
         run: |
           mkdir -p apk-output
-          find upstream -type f -path '*/build/outputs/apk/*' -name '*.apk' -exec cp {} apk-output/ \;
-          test -n "$(find apk-output -type f -name '*.apk' -print -quit)"
+          source_apk="$(find upstream/lemuroid-app/build/outputs/apk/freeBundle/debug -type f -name '*.apk' -print -quit)"
+          test -n "$source_apk"
+          cp "$source_apk" apk-output/Rings-of-Power-Android-alpha.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: rings-of-power-compatibility-apks
-          path: apk-output/*.apk
+          name: Rings-of-Power-Android-alpha
+          path: apk-output/Rings-of-Power-Android-alpha.apk
           if-no-files-found: error
           retention-days: 30
