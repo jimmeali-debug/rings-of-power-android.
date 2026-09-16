@@ -14,6 +14,9 @@ Z80_DRIVER_SIZE = 0x1577
 SFX_TABLE_START = 0x0FCAE2
 SFX_RECORDS = 90
 SFX_RECORD_SIZE = 0x16
+INSTRUMENT_POINTER_TABLE = 0x0382
+INSTRUMENTS = 32
+INSTRUMENT_SIZE = 0x24
 
 # Selectors 18 and 19 branch directly to the return path and have no resource.
 MUSIC_POINTERS = {
@@ -62,17 +65,31 @@ def main() -> int:
 
     rows = ["kind\tselector\trom_start\trom_end\tsize\tsha256\tfile"]
     driver_end = Z80_DRIVER_START + Z80_DRIVER_SIZE
+    driver = data[Z80_DRIVER_START:driver_end]
     rows.append(
         write_resource(
             args.output_dir,
             "z80-driver.bin",
-            data[Z80_DRIVER_START:driver_end],
+            driver,
             "z80-driver",
             "-",
             Z80_DRIVER_START,
             driver_end,
         )
     )
+
+    for program in range(INSTRUMENTS):
+        pointer_offset = INSTRUMENT_POINTER_TABLE + program * 2
+        driver_offset = int.from_bytes(driver[pointer_offset : pointer_offset + 2], "little")
+        expected_offset = 0x10EC + program * INSTRUMENT_SIZE
+        if driver_offset != expected_offset:
+            raise ValueError(f"Unexpected instrument pointer for program {program}")
+        start = Z80_DRIVER_START + driver_offset
+        end = start + INSTRUMENT_SIZE
+        filename = f"instrument-{program:02d}.bin"
+        rows.append(
+            write_resource(args.output_dir, filename, data[start:end], "instrument", str(program), start, end)
+        )
 
     for selector, start in sorted(MUSIC_POINTERS.items()):
         end = int.from_bytes(data[start - 4 : start], "big")
