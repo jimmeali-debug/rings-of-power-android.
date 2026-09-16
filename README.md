@@ -31,6 +31,21 @@ and no partial native APK is published as the game.
 For complete playability, use the compatibility APK described above. Native
 work remains internal until it reaches a genuinely playable milestone.
 
+## Character stat console
+
+The full-game compatibility build includes a Developer Console in the in-game
+pause menu. It uses the emulator core's cheat API to modify live Genesis RAM.
+
+Commands include:
+
+- `buc life 500` or `buc mana 500`
+- `slash maxlife 9999`
+- `god` to lock all party life and mana at 9999
+- `off` to disable every console stat lock
+
+Supported characters are Buc, Slash, Feather, Alexi, Obliki, and Mortimer.
+Values may range from 0 through 9999.
+
 ## Build
 
 GitHub Actions clones a pinned upstream Lemuroid revision, including its
