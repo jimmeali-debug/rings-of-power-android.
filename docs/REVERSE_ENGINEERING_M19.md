@@ -23,7 +23,9 @@ packs and resolve to the original clean-room playback path.
 The module is dependency-free Java 11 source, making its core logic usable by
 Android without tying validation to an Activity or storage implementation.
 `AudioAssetSource` is the boundary for a future Storage Access Framework
-adapter.
+adapter. `AudioOverrideManager` atomically activates only fully verified packs
+and returns an explicit original-or-override resolution for each playback
+request.
 
 Run:
 
