@@ -33,7 +33,7 @@ jobs:
         run: |
           sed -i 's/applicationId = "com.swordfish.lemuroid"/applicationId = "com.jimmeali.ringsofpower"/' lemuroid-app/build.gradle.kts
           sed -i 's/resValue("string", "lemuroid_name", "LemuroiDebug")/resValue("string", "lemuroid_name", "Rings of Power")/' lemuroid-app/build.gradle.kts
-          sed -i 's/versionNameSuffix = "-DEBUG"/versionNameSuffix = "-RINGS-ALPHA-2"/' lemuroid-app/build.gradle.kts
+          sed -i 's/versionNameSuffix = "-DEBUG"/versionNameSuffix = "-RINGS-ALPHA-3"/' lemuroid-app/build.gradle.kts
           mkdir -p lemuroid-app/src/main/res/drawable
           cat > lemuroid-app/src/main/res/drawable/rings_launcher.xml <<'EOF'
           <vector xmlns:android="http://schemas.android.com/apk/res/android"
@@ -42,18 +42,28 @@ jobs:
               android:viewportWidth="108"
               android:viewportHeight="108">
               <path android:fillColor="#111827" android:pathData="M0,0h108v108h-108z"/>
-              <path
-                  android:fillColor="#F4C542"
-                  android:fillType="evenOdd"
+              <path android:fillColor="#F4C542" android:fillType="evenOdd"
                   android:pathData="M54,14A40,40 0,1 0,54 94A40,40 0,1 0,54 14M54,32A22,22 0,1 1,54 76A22,22 0,1 1,54 32"/>
               <path android:fillColor="#FFF2A8" android:pathData="M54,5L68,19L54,31L40,19Z"/>
           </vector>
           EOF
           sed -i 's|android:icon="@mipmap/lemuroid_launcher"|android:icon="@drawable/rings_launcher"|' lemuroid-app/src/main/AndroidManifest.xml
           sed -i 's|android:roundIcon="@mipmap/lemuroid_launcher_round"|android:roundIcon="@drawable/rings_launcher"|' lemuroid-app/src/main/AndroidManifest.xml
-          grep -q 'com.jimmeali.ringsofpower' lemuroid-app/build.gradle.kts
-          grep -q 'Rings of Power' lemuroid-app/build.gradle.kts
-          grep -q 'rings_launcher' lemuroid-app/src/main/AndroidManifest.xml
+          sed -i '/android.permission.RECORD_AUDIO/d' lemuroid-app/src/main/AndroidManifest.xml
+
+      - name: Focus home screen on Rings of Power
+        working-directory: upstream
+        run: |
+          strings='lemuroid-app/src/main/res/values/strings.xml'
+          sed -i 's|<string name="title_home">Home</string>|<string name="title_home">Rings of Power</string>|' "$strings"
+          sed -i 's|<string name="title_systems">Systems</string>|<string name="title_systems">Genesis</string>|' "$strings"
+          sed -i 's|<string name="title_games">Games</string>|<string name="title_games">Adventure</string>|' "$strings"
+          sed -i 's|<string name="home_empty_title">Select ROMs directory</string>|<string name="home_empty_title">Select your Rings of Power folder</string>|' "$strings"
+          sed -i 's|<string name="home_empty_message">Lemuroid needs to scan a directory containing ROM files.\\nThis might take up to a few minutes.</string>|<string name="home_empty_message">Choose the folder containing your legally obtained Rings of Power Genesis ROM.</string>|' "$strings"
+          sed -i 's|<string name="home_empty_action">Select Directory</string>|<string name="home_empty_action">Choose Game Folder</string>|' "$strings"
+          sed -i 's/showNoMicrophonePermissionCard = showMicrophoneCard/showNoMicrophonePermissionCard = false/' lemuroid-app/src/main/java/com/swordfish/lemuroid/app/mobile/feature/home/HomeViewModel.kt
+          grep -q 'Select your Rings of Power folder' "$strings"
+          grep -q 'showNoMicrophonePermissionCard = false' lemuroid-app/src/main/java/com/swordfish/lemuroid/app/mobile/feature/home/HomeViewModel.kt
 
       - name: Keep Genesis core only
         working-directory: upstream
@@ -77,12 +87,12 @@ jobs:
           mkdir -p apk-output
           source_apk="$(find upstream/lemuroid-app/build/outputs/apk/freeBundle/debug -type f -name '*.apk' -print -quit)"
           test -n "$source_apk"
-          cp "$source_apk" apk-output/Rings-of-Power-Android-alpha-2.apk
+          cp "$source_apk" apk-output/Rings-of-Power-Android-alpha-3.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Rings-of-Power-Android-alpha-2
-          path: apk-output/Rings-of-Power-Android-alpha-2.apk
+          name: Rings-of-Power-Android-alpha-3
+          path: apk-output/Rings-of-Power-Android-alpha-3.apk
           if-no-files-found: error
           retention-days: 30
