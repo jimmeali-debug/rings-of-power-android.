@@ -28,6 +28,7 @@ mapfile -d '' sources < <(
   find \
     "$root_dir/audio-runtime/src/main/java" \
     "$root_dir/android-storage/src/main/java" \
+    "$root_dir/rom-runtime/src/main/java" \
     "$root_dir/demo-app/src/main/java" \
     -type f -name '*.java' -print0
 )
