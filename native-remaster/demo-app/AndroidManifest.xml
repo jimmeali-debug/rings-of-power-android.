@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.jimmeali.ringsofpower.demo">
+    package="com.jimmeali.ringsofpower.nativepreview">
 
     <uses-sdk android:minSdkVersion="23" android:targetSdkVersion="35" />
 
@@ -10,7 +10,7 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.NoActionBar">
         <activity
-            android:name=".DemoActivity"
+            android:name="com.jimmeali.ringsofpower.demo.DemoActivity"
             android:exported="true"
             android:screenOrientation="portrait">
             <intent-filter>
