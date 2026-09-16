@@ -1,7 +1,7 @@
 # Reverse-engineering milestone 9: program/patch bank
 
 Music program-change values can now be resolved to a fixed bank inside the Z80
-driver. The extractor preserves all 32 native program structures.
+driver. The extractor preserves all 32 native logical program views.
 
 ## Program lookup
 
@@ -15,9 +15,12 @@ The table contains 32 pointers:
 - every following pointer advances by `0x24` bytes
 - program 31 points to `0x1548`
 
-This establishes 32 contiguous 36-byte program structures ending at `0x156C`.
-Music streams use program values 0-29; programs 30 and 31 remain available to
-the driver but are not selected by the 19 decoded music streams.
+The pointer stride is 36 bytes, but the driver's sparse register indexing reads
+through offset `0x2D`. Each logical view is therefore 46 bytes and overlaps the
+next pointer window by ten bytes. The earlier 36-byte interpretation captured
+the stride rather than the complete view. Music streams use program values
+0-29; programs 30 and 31 remain available to the driver but are not selected
+by the 19 decoded music streams.
 
 The structures contain synthesis parameters consumed by the driver's YM2612
 and PSG setup routines. Field-level operator/register naming is intentionally
@@ -33,9 +36,9 @@ writes:
 instrument-00.bin ... instrument-31.bin
 ```
 
-Each file is 36 bytes and receives a manifest row with its program number, ROM
-range, size, and SHA-256 hash. Pointer order and spacing are validated during
-extraction.
+Each file is a complete 46-byte logical view and receives a manifest row with
+its program number, overlapping ROM range, size, and SHA-256 hash. Pointer
+order and 36-byte spacing are validated during extraction.
 
 ## Next analysis targets
 
