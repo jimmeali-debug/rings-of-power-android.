@@ -30,6 +30,21 @@ public final class AudioRuntimeTest {
         check(pack.resolve(AudioAssetKind.MUSIC, 8).isPresent(), "verified override");
         check(!pack.resolve(AudioAssetKind.NORMAL_SFX, 3).isPresent(), "verified fallback");
 
+        AudioOverrideManager manager = new AudioOverrideManager();
+        check(
+                manager.resolve(AudioAssetKind.MUSIC, 8).mode() == AudioResolution.Mode.ORIGINAL,
+                "inactive manager fallback");
+        manager.activate(manifest, ROM_SHA, path -> new ByteArrayInputStream(files.get(path)));
+        check(manager.activeManifest().isPresent(), "active manifest");
+        check(
+                manager.resolve(AudioAssetKind.MUSIC, 8).mode() == AudioResolution.Mode.OVERRIDE,
+                "manager override");
+        check(
+                manager.resolve(AudioAssetKind.NORMAL_SFX, 3).mode() == AudioResolution.Mode.ORIGINAL,
+                "manager partial fallback");
+        manager.deactivate();
+        check(!manager.activeManifest().isPresent(), "manager deactivate");
+
         expectFailure(() -> AudioOverrideManifest.parse(
                 manifestJson.replace("music/selector-08.ogg", "../escape.ogg")));
         expectFailure(() -> AudioOverrideManifest.parse(
