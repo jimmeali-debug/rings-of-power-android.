@@ -46,7 +46,7 @@ internal fun RingsConsoleDialog(
         title = { Text("Rings of Power Console") },
         text = {
             Column {
-                Text("Examples: buc life 500, slash mana 9999, god, off")
+                Text("Examples: buc life 500, slash mana 9999, god, off. Void protection is automatic.")
                 OutlinedTextField(
                     value = command,
                     onValueChange = { command = it },
@@ -193,6 +193,11 @@ object RingsConsoleCommands {
     )
 
     activity = game_dir / "BaseGameActivity.kt"
+    replace_once(
+        activity,
+        "            baseGameScreenViewModel.loadGame(\n                applicationContext,\n                game,\n                systemCoreConfig,\n                gameLoader,\n                intent.getBooleanExtra(EXTRA_LOAD_SAVE, false),\n            )\n",
+        "            baseGameScreenViewModel.loadGame(\n                applicationContext,\n                game,\n                systemCoreConfig,\n                gameLoader,\n                intent.getBooleanExtra(EXTRA_LOAD_SAVE, false),\n            )\n            // Disable the original game's random, unavoidable Void party wipe.\n            // This patches only the core's in-memory ROM copy, never the user's file.\n            baseGameScreenViewModel.retroGameView.retroGameView?.setCheat(\n                24,\n                true,\n                \"012072:4E75\",\n            )\n",
+    )
     marker = "    override fun onActivityResult(\n"
     method = r'''    private fun applyRingsConsoleCommand(command: String) {
         val retroView = baseGameScreenViewModel.retroGameView.retroGameView
