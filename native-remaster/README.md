@@ -15,6 +15,8 @@ It:
 
 `AudioOverrideManager` provides the thread-safe activation, deactivation, and
 original-versus-override resolution API for the future Android mixer.
+`openOverride` returns a closeable verified stream and manifest entry when an
+override exists; an empty result directs the engine to its original audio path.
 
 Run its portable test suite with:
 
