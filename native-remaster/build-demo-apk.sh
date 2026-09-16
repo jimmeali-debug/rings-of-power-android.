@@ -3,7 +3,7 @@ set -euo pipefail
 
 root_dir="$(cd "$(dirname "$0")" && pwd)"
 repo_dir="$(cd "$root_dir/.." && pwd)"
-output_apk="${1:-$root_dir/demo-app/build/Rings-of-Power-Native-Audio-Demo.apk}"
+output_apk="${1:-$root_dir/demo-app/build/Rings-of-Power-Native-Demo.apk}"
 android_api="${ANDROID_API_LEVEL:-35}"
 build_tools_version="${ANDROID_BUILD_TOOLS_VERSION:-35.0.0}"
 
@@ -73,4 +73,7 @@ keytool -genkeypair \
   "$work_dir/aligned.apk"
 "$build_tools/apksigner" verify --verbose "$output_apk"
 unzip -t "$output_apk" >/dev/null
+unzip -l "$output_apk" | grep -q 'classes.dex'
+unzip -l "$output_apk" | grep -q 'assets/audio-overrides.json'
+unzip -l "$output_apk" | grep -q 'assets/music/selector-08.ogg'
 echo "Built demo APK: $output_apk"
