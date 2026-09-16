@@ -1,11 +1,12 @@
 # Rings of Power Android Compatibility Build
 
 This repository builds an Android compatibility APK for playing a legally
-obtained Sega Genesis copy of *Rings of Power*.
+obtained Sega Genesis copy of *Rings of Power* and hosts the clean-room
+analysis tools for the later native remaster.
 
-## What this first APK is
+## What the current APK is
 
-Milestone 2 uses the open-source
+The APK uses the open-source
 [Lemuroid](https://github.com/Swordfish90/Lemuroid) Android frontend and its
 Genesis Plus GX Libretro core. It provides:
 
@@ -26,11 +27,28 @@ submodules, and builds unsigned/debug APK artifacts. Open the repository's
 **Actions** tab, select **Build compatibility APK**, and download the
 `rings-of-power-compatibility-apks` artifact after the job succeeds.
 
+## Reverse-engineering toolchain
+
+The current deterministic tools operate only on a matching, owner-supplied ROM:
+
+- `tools/extract_rom_dictionary.py` extracts the 3,466-entry word dictionary.
+- `tools/extract_dialogue.py` reconstructs 1,184 tokenized text records.
+- `tools/extract_type1_resources.py` expands 152 verified LZSS resources.
+- `tools/render_tilesets.py` renders 90 palette-correct 48×48 portrait assets.
+
+Verified formats and code paths are recorded in
+`docs/REVERSE_ENGINEERING_M1.md` through `docs/REVERSE_ENGINEERING_M4.md`.
+Generated text, binaries, and PNGs stay outside source control.
+
 ## ROM boundary
 
 No Rings of Power ROM, extracted commercial assets, maps, dialogue, music, or
 sound effects may be committed to this repository. After installing the APK,
 select the ROM from device storage.
+
+The supported reference ROM has SHA-256:
+
+`36303fc447c433ebc69c3d4df86c783c86b383e0acead1c19595f13269e248f5`
 
 ## Licensing
 
