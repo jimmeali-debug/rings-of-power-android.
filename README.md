@@ -35,9 +35,11 @@ The current deterministic tools operate only on a matching, owner-supplied ROM:
 - `tools/extract_dialogue.py` reconstructs 1,184 tokenized text records.
 - `tools/extract_type1_resources.py` expands 152 verified LZSS resources.
 - `tools/render_tilesets.py` renders 90 palette-correct 48×48 portrait assets.
+- `tools/render_primary_tiles.py` renders 34 verified primary tile streams.
+- `tools/render_verified_maps.py` reconstructs two complete 40×28 map planes.
 
 Verified formats and code paths are recorded in
-`docs/REVERSE_ENGINEERING_M1.md` through `docs/REVERSE_ENGINEERING_M4.md`.
+`docs/REVERSE_ENGINEERING_M1.md` through `docs/REVERSE_ENGINEERING_M6.md`.
 Generated text, binaries, and PNGs stay outside source control.
 
 ## ROM boundary
