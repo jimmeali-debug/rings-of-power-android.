@@ -50,12 +50,13 @@ The current deterministic tools operate only on a matching, owner-supplied ROM:
 - `tools/build_audio_override_pack.py` creates Android-ready remaster audio packs.
 
 The dependency-free `native-remaster/audio-runtime` module validates and
-resolves those packs for the future native Android engine. The
+resolves those packs for the future native Android engine, including closeable
+verified playback streams with explicit original-audio fallback. The
 `native-remaster/android-storage` adapter imports packs selected with Android's
 system folder picker.
 
 Verified formats and code paths are recorded in
-`docs/REVERSE_ENGINEERING_M1.md` through `docs/REVERSE_ENGINEERING_M20.md`.
+`docs/REVERSE_ENGINEERING_M1.md` through `docs/REVERSE_ENGINEERING_M21.md`.
 Generated text, binaries, and PNGs stay outside source control.
 
 ## ROM boundary
