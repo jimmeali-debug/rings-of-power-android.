@@ -1,8 +1,8 @@
 # Reverse-engineering milestone 8: music event streams
 
 All 19 music selectors now decode into validated, timing-preserving event
-streams. The format is MIDI-like but remains in the game's native tick domain;
-the tool deliberately does not assign an unverified MIDI tempo.
+streams. The format is MIDI-like, and the 68K-to-Z80 synchronization path
+establishes a normalized 60 Hz native tick.
 
 ## Driver execution path
 
@@ -22,6 +22,11 @@ The event dispatcher at `0x084C` recognizes four command families:
 After every non-terminal event, routine `0x08EA` reads one delay byte. That
 delay advances the absolute tick of the following event. Routine `0x046A`
 advances the streamed pointer and handles the Z80 `0x1600-0x19FF` page window.
+
+The 68K routine at `0x0EB772` updates the Z80 clock once per video frame. It
+adds one tick per NTSC frame and fractional PAL compensation, producing a
+normalized 60 Hz clock in both video modes. Event delays are therefore measured
+in 1/60-second ticks.
 
 The semantics are also confirmed by the dispatch targets: `0x079E` handles
 nonzero-velocity note-on events, `0x06DA` handles note release, and the `0xCn`
@@ -50,8 +55,8 @@ Decode every selector from a matching owner-supplied ROM:
 python3 tools/decode_music_events.py game.bin decoded-music
 ```
 
-The command writes one TSV file per selector and a summary manifest. Each event
-row preserves:
+The command writes one TSV and one format-0 Standard MIDI file per selector,
+plus a summary manifest. Each TSV event row preserves:
 
 - byte offset in the native stream
 - absolute native tick
@@ -60,13 +65,15 @@ row preserves:
 - original operands
 - delay before the following event
 
-This lossless intermediate form is suitable for later FM/PSG reconstruction
-and for MIDI export once the tick-rate and instrument mappings are verified.
+The MIDI files use division 60 and a 60 BPM tempo, making each MIDI tick exactly
+1/60 second. Original status bytes, channels, notes, velocities, program
+numbers, and ordering are retained. Program numbers refer to the game's custom
+sound patches, not General MIDI instrument names; the TSV remains the
+authoritative lossless representation.
 
 ## Next analysis targets
 
 1. Map program numbers to the driver's FM, PSG, and percussion patches.
-2. Determine native tick frequency and tempo behavior.
-3. Decode SFX record fields and special effect pointers.
-4. Export a clearly labeled approximation to Standard MIDI while retaining
-   the lossless native TSV as the authoritative representation.
+2. Decode SFX record fields and special effect pointers.
+3. Map the driver's 60 Hz event timing to musical tempo changes, if any.
+4. Render the custom patches through an emulated YM2612/PSG signal path.
