@@ -1,0 +1,26 @@
+name: Test native remaster foundation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'native-remaster/**'
+      - '.github/workflows/test-native-remaster.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audio-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Compile and test audio runtime
+        run: bash native-remaster/test-audio-runtime.sh
