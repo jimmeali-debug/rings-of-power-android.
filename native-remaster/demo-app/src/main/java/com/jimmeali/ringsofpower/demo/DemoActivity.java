@@ -3,6 +3,7 @@ package com.jimmeali.ringsofpower.demo;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.net.Uri;
@@ -20,6 +21,7 @@ import com.jimmeali.ringsofpower.audio.AudioOverrideManager;
 import com.jimmeali.ringsofpower.audio.AudioOverrideManifest;
 import com.jimmeali.ringsofpower.audio.OpenedAudioOverride;
 import com.jimmeali.ringsofpower.audio.android.SafAudioOverrideController;
+import com.jimmeali.ringsofpower.rom.RomSceneDecoder;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -32,10 +34,12 @@ import java.util.concurrent.Executors;
 
 public final class DemoActivity extends Activity {
     private static final int PICK_PACK = 41;
+    private static final int PICK_ROM = 42;
     private static final String ROM_SHA =
             "36303fc447c433ebc69c3d4df86c783c86b383e0acead1c19595f13269e248f5";
     private static final String PREFERENCES = "audio-demo";
     private static final String SAVED_TREE = "saved-tree";
+    private static final String SAVED_ROM = "saved-rom";
 
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private final AudioOverrideManager manager = new AudioOverrideManager();
@@ -43,6 +47,7 @@ public final class DemoActivity extends Activity {
     private MediaPlayerAudioBackend backend;
     private SharedPreferences preferences;
     private TextView status;
+    private DemoGameView game;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -53,6 +58,7 @@ public final class DemoActivity extends Activity {
         preferences = getSharedPreferences(PREFERENCES, MODE_PRIVATE);
         setContentView(createContent());
         restoreOrLoadBundledPack();
+        restoreRom();
     }
 
     private View createContent() {
@@ -76,7 +82,7 @@ public final class DemoActivity extends Activity {
         description.setPadding(0, dp(18), 0, dp(18));
         content.addView(description, matchWrap());
 
-        DemoGameView game = new DemoGameView(this);
+        game = new DemoGameView(this);
         game.setListener(new DemoGameView.Listener() {
             @Override
             public void onMessage(String message) {
@@ -92,6 +98,7 @@ public final class DemoActivity extends Activity {
         content.addView(game, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, dp(430)));
 
+        content.addView(button("Select verified Rings of Power ROM", view -> chooseRom()), matchWrap());
         content.addView(button("Play selector 08", view -> playSelector()), matchWrap());
         content.addView(button("Stop", view -> stopPlayback()), matchWrap());
         content.addView(button("Import override pack folder", view -> choosePack()), matchWrap());
@@ -153,14 +160,36 @@ public final class DemoActivity extends Activity {
         startActivityForResult(intent, PICK_PACK);
     }
 
+    private void chooseRom() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.setType("application/octet-stream");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        startActivityForResult(intent, PICK_ROM);
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode != PICK_PACK || resultCode != RESULT_OK || data == null
-                || data.getData() == null) {
+        if (resultCode != RESULT_OK || data == null || data.getData() == null) {
             return;
         }
         Uri tree = data.getData();
+        if (requestCode == PICK_ROM) {
+            try {
+                getContentResolver().takePersistableUriPermission(
+                        tree, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            } catch (SecurityException ignored) {
+                // Some providers grant access for the current process only.
+            }
+            preferences.edit().putString(SAVED_ROM, tree.toString()).apply();
+            loadRom(tree, "Selected ROM active");
+            return;
+        }
+        if (requestCode != PICK_PACK) {
+            return;
+        }
         setStatus("Verifying selected pack…");
         worker.execute(() -> {
             try {
@@ -171,6 +200,54 @@ public final class DemoActivity extends Activity {
                 setStatus("Import rejected: " + safeMessage(failure));
             }
         });
+    }
+
+    private void restoreRom() {
+        String saved = preferences.getString(SAVED_ROM, null);
+        if (saved != null) {
+            loadRom(Uri.parse(saved), "Restored ROM scene");
+        }
+    }
+
+    private void loadRom(Uri uri, String successMessage) {
+        setStatus("Hashing and decoding selected ROM…");
+        worker.execute(() -> {
+            try {
+                byte[] rom = readRom(uri);
+                RomSceneDecoder.DecodedScene scene = new RomSceneDecoder().decodeVerified(
+                        rom, RomSceneDecoder.Scene.SCREEN_B);
+                Bitmap bitmap = Bitmap.createBitmap(
+                        scene.argb(), scene.width(), scene.height(), Bitmap.Config.ARGB_8888);
+                runOnUiThread(() -> {
+                    game.setSceneBitmap(bitmap);
+                    status.setText(successMessage + " — real screen-b plane decoded in memory");
+                });
+            } catch (Exception failure) {
+                preferences.edit().remove(SAVED_ROM).apply();
+                setStatus("ROM rejected; clean-room scene retained: " + safeMessage(failure));
+            }
+        });
+    }
+
+    private byte[] readRom(Uri uri) throws IOException {
+        InputStream opened = getContentResolver().openInputStream(uri);
+        if (opened == null) {
+            throw new IOException("Document provider returned no ROM stream");
+        }
+        try (InputStream input = opened; ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            byte[] buffer = new byte[16 * 1024];
+            int count;
+            while ((count = input.read(buffer)) >= 0) {
+                if (count == 0) {
+                    continue;
+                }
+                if (output.size() + count > RomSceneDecoder.SUPPORTED_SIZE) {
+                    throw new IOException("ROM is larger than the supported 1 MiB image");
+                }
+                output.write(buffer, 0, count);
+            }
+            return output.toByteArray();
+        }
     }
 
     private void playSelector() {
