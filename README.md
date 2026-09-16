@@ -41,9 +41,10 @@ The current deterministic tools operate only on a matching, owner-supplied ROM:
 - `tools/decode_music_events.py` decodes native events and exports timing-correct MIDI.
 - `tools/decode_sfx_macros.py` decodes verified instrument, note, and pitch macros.
 - `tools/decode_special_dac.py` reconstructs the seven delta-coded DAC samples.
+- `tools/decode_instrument_programs.py` decodes all YM2612 program parameters.
 
 Verified formats and code paths are recorded in
-`docs/REVERSE_ENGINEERING_M1.md` through `docs/REVERSE_ENGINEERING_M11.md`.
+`docs/REVERSE_ENGINEERING_M1.md` through `docs/REVERSE_ENGINEERING_M12.md`.
 Generated text, binaries, and PNGs stay outside source control.
 
 ## ROM boundary
