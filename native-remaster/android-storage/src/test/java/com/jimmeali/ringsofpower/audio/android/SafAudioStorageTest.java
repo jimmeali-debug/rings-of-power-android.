@@ -8,6 +8,7 @@ import android.provider.DocumentsContract;
 import com.jimmeali.ringsofpower.audio.AudioAssetKind;
 import com.jimmeali.ringsofpower.audio.AudioOverrideManager;
 import com.jimmeali.ringsofpower.audio.AudioResolution;
+import com.jimmeali.ringsofpower.audio.OpenedAudioOverride;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
@@ -45,6 +46,10 @@ public final class SafAudioStorageTest {
         check(
                 manager.resolve(AudioAssetKind.MUSIC, 9).mode() == AudioResolution.Mode.ORIGINAL,
                 "partial fallback");
+        try (OpenedAudioOverride opened =
+                manager.openOverride(AudioAssetKind.MUSIC, 8).orElseThrow()) {
+            check(Arrays.equals(opened.input().readAllBytes(), music), "provider playback stream");
+        }
 
         SafAudioAssetSource source = new SafAudioAssetSource(resolver, tree);
         expectIllegalArgument(() -> source.resolve("../escape.ogg"));
