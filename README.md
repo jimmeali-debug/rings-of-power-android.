@@ -40,9 +40,10 @@ The current deterministic tools operate only on a matching, owner-supplied ROM:
 - `tools/extract_audio_resources.py` inventories the Z80 driver, music, and SFX data.
 - `tools/decode_music_events.py` decodes native events and exports timing-correct MIDI.
 - `tools/decode_sfx_macros.py` decodes verified instrument, note, and pitch macros.
+- `tools/decode_special_dac.py` reconstructs the seven delta-coded DAC samples.
 
 Verified formats and code paths are recorded in
-`docs/REVERSE_ENGINEERING_M1.md` through `docs/REVERSE_ENGINEERING_M10.md`.
+`docs/REVERSE_ENGINEERING_M1.md` through `docs/REVERSE_ENGINEERING_M11.md`.
 Generated text, binaries, and PNGs stay outside source control.
 
 ## ROM boundary
