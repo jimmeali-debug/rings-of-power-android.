@@ -26,6 +26,8 @@ jobs:
         run: bash native-remaster/test-audio-runtime.sh
       - name: Test Android storage adapter
         run: bash native-remaster/test-android-storage.sh
+      - name: Test ROM scene decoder
+        run: bash native-remaster/test-rom-runtime.sh
       - name: Ensure Android API 35
         run: |
           android_jar="$ANDROID_HOME/platforms/android-35/android.jar"
