@@ -49,8 +49,11 @@ The current deterministic tools operate only on a matching, owner-supplied ROM:
 - `tools/render_reference_soundtrack.py` renders checksummed lossless soundtrack batches.
 - `tools/build_audio_override_pack.py` creates Android-ready remaster audio packs.
 
+The dependency-free `native-remaster/audio-runtime` module validates and
+resolves those packs for the future native Android engine.
+
 Verified formats and code paths are recorded in
-`docs/REVERSE_ENGINEERING_M1.md` through `docs/REVERSE_ENGINEERING_M18.md`.
+`docs/REVERSE_ENGINEERING_M1.md` through `docs/REVERSE_ENGINEERING_M19.md`.
 Generated text, binaries, and PNGs stay outside source control.
 
 ## ROM boundary
