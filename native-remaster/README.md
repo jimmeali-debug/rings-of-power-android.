@@ -13,6 +13,9 @@ It:
 - verifies every encoded asset's byte length and SHA-256 before activation;
 - resolves present overrides while leaving absent IDs on the original fallback.
 
+`AudioOverrideManager` provides the thread-safe activation, deactivation, and
+original-versus-override resolution API for the future Android mixer.
+
 Run its portable test suite with:
 
 ```bash
