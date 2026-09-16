@@ -34,6 +34,10 @@ jobs:
             yes | "$sdkmanager_bin" --licenses >/dev/null || true
             "$sdkmanager_bin" "${packages[@]}"
           fi
+      - name: Install audio encoder
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg
       - name: Build signed demo APK
         run: bash native-remaster/build-demo-apk.sh apk-output/Rings-of-Power-Native-Audio-Demo.apk
       - name: Upload demo APK
