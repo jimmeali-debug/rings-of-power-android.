@@ -46,7 +46,7 @@ internal fun RingsConsoleDialog(
         title = { Text("Rings of Power Console") },
         text = {
             Column {
-                Text("Examples: buc life 500, slash mana 9999, god, off. Void protection is automatic.")
+                Text("Examples: buc life 500, slash mana 9999, gold 30000, god, off. Void protection is automatic.")
                 OutlinedTextField(
                     value = command,
                     onValueChange = { command = it },
@@ -96,6 +96,18 @@ object RingsConsoleCommands {
         val command = raw.trim().lowercase()
         if (command == "off" || command == "unlock") {
             return Result(emptyList(), true, "All stat locks disabled")
+        }
+        if (command.startsWith("gold ")) {
+            val parts = command.split(Regex("\\s+")).filter { it.isNotEmpty() }
+            require(parts.size == 2) { "Use: gold value — for example: gold 30000" }
+            val value = parts[1].toIntOrNull()
+                ?: throw IllegalArgumentException("Gold must be a number from 0 to 32767")
+            require(value in 0..32767) { "Gold must be from 0 to 32767" }
+            return Result(
+                listOf(Cheat(25, formatCode(0xFF02DE, value))),
+                false,
+                "Gold locked at $value",
+            )
         }
         if (command == "god") {
             val cheats = mutableListOf<Cheat>()
