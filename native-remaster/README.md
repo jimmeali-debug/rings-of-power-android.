@@ -41,3 +41,17 @@ Compile the production adapter against Android API 35 with:
 ```bash
 ANDROID_HOME=/path/to/android-sdk bash native-remaster/compile-android-storage.sh
 ```
+
+
+## Game application
+
+`game-app` is the production Android game shell. It verifies an owner-supplied
+ROM, renders connected ROM-backed areas, and persists the player's area,
+position, and quest state. Build it with:
+
+```bash
+ANDROID_HOME=/path/to/android-sdk bash native-remaster/build-game-apk.sh
+```
+
+The resulting package is `com.jimmeali.ringsofpower.game`. Demo APKs are no
+longer produced; future gameplay milestones extend this application.

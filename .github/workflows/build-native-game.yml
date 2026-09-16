@@ -1,4 +1,4 @@
-name: Build native remaster demo APK
+name: Build Rings of Power game APK
 
 on:
   workflow_dispatch:
@@ -6,14 +6,13 @@ on:
     branches: [ main ]
     paths:
       - 'native-remaster/**'
-      - 'tools/generate_demo_audio_pack.py'
-      - '.github/workflows/build-native-demo.yml'
+      - '.github/workflows/build-native-game.yml'
 
 permissions:
   contents: read
 
 jobs:
-  build-demo:
+  build-game:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -34,16 +33,14 @@ jobs:
             yes | "$sdkmanager_bin" --licenses >/dev/null || true
             "$sdkmanager_bin" "${packages[@]}"
           fi
-      - name: Install audio encoder
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends ffmpeg
-      - name: Build signed demo APK
-        run: bash native-remaster/build-demo-apk.sh apk-output/Rings-of-Power-Native-Demo.apk
-      - name: Upload demo APK
+      - name: Test game progression
+        run: bash native-remaster/test-game-progress.sh
+      - name: Build signed game APK
+        run: bash native-remaster/build-game-apk.sh apk-output/Rings-of-Power-Game.apk
+      - name: Upload game APK
         uses: actions/upload-artifact@v4
         with:
-          name: Rings-of-Power-Native-Demo
-          path: apk-output/Rings-of-Power-Native-Demo.apk
+          name: Rings-of-Power-Game
+          path: apk-output/Rings-of-Power-Game.apk
           if-no-files-found: error
           retention-days: 30

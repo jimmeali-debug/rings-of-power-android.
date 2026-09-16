@@ -20,25 +20,23 @@ Genesis Plus GX Libretro core. It provides:
 This compatibility APK is the playable baseline. It is not yet the later native
 remaster with replacement HD graphics and remastered audio.
 
-## Working native demo
+## Native game build
 
-The repository also builds `Rings-of-Power-Native-Demo.apk`, a ROM-backed
-playable vertical slice requiring Android 6.0 or newer. It includes touchscreen
-and hardware-controller movement, an interactable Sage, a generated Vorbis demo
-track, verified audio override playback, and Android document pickers for both
-the game ROM and override packs.
+The repository now builds `Rings-of-Power-Game.apk`, the continuing native
+Android game application. It requires Android 6.0 or newer and an owner-supplied
+matching 1 MiB USA/Europe ROM.
 
-Open **Actions**, select **Build native remaster demo APK**, open the latest
-successful run, and download the `Rings-of-Power-Native-Demo` artifact. Extract
-the ZIP and install the APK. Tap **Select verified Rings of Power ROM** and
-choose the supported 1 MiB ROM. The app verifies its SHA-256, decodes the
-original compressed map, tile, and palette records in memory, and displays the
-authentic 320×224 scene plane. Move to the Sage and press **Action** to exercise
-the complete verified playback path.
+Open **Actions**, select **Build Rings of Power game APK**, open the latest
+successful run, and download the `Rings-of-Power-Game` artifact. The app
+verifies the selected ROM, decodes original map, tile, and palette records only
+in memory, and starts the restored adventure.
 
-The demo contains no extracted commercial graphics, maps, dialogue, or audio.
-No ROM or extracted scene is bundled or uploaded. It is a working native
-ROM-backed systems slice, not yet the complete game recreation.
+The current game build provides New Game and Continue, two connected ROM-backed
+areas, touch and hardware-controller movement, an interactable Sage quest, and
+automatic area, position, and quest saving. Future milestones extend this same
+application with additional original systems and content; separate demo APKs are
+no longer produced. No ROM or extracted commercial assets are bundled or
+uploaded.
 
 ## Build
 
@@ -76,7 +74,7 @@ verified playback streams with explicit original-audio fallback. The
 system folder picker.
 
 Verified formats and code paths are recorded in
-`docs/REVERSE_ENGINEERING_M1.md` through `docs/REVERSE_ENGINEERING_M23.md`.
+`docs/REVERSE_ENGINEERING_M1.md` through `docs/REVERSE_ENGINEERING_M24.md`.
 Generated text, binaries, and PNGs stay outside source control.
 
 ## ROM boundary

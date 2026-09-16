@@ -2,8 +2,7 @@
 set -euo pipefail
 
 root_dir="$(cd "$(dirname "$0")" && pwd)"
-repo_dir="$(cd "$root_dir/.." && pwd)"
-output_apk="${1:-$root_dir/demo-app/build/Rings-of-Power-Native-Demo.apk}"
+output_apk="${1:-$root_dir/game-app/build/Rings-of-Power-Game.apk}"
 android_api="${ANDROID_API_LEVEL:-35}"
 build_tools_version="${ANDROID_BUILD_TOOLS_VERSION:-35.0.0}"
 
@@ -19,17 +18,12 @@ work_dir="$(mktemp -d)"
 trap 'rm -rf "$work_dir"' EXIT
 classes_dir="$work_dir/classes"
 dex_dir="$work_dir/dex"
-assets_dir="$work_dir/assets"
-mkdir -p "$classes_dir" "$dex_dir" "$assets_dir" "$(dirname "$output_apk")"
-
-python3 "$repo_dir/tools/generate_demo_audio_pack.py" "$assets_dir"
+mkdir -p "$classes_dir" "$dex_dir" "$(dirname "$output_apk")"
 
 mapfile -d '' sources < <(
   find \
-    "$root_dir/audio-runtime/src/main/java" \
-    "$root_dir/android-storage/src/main/java" \
     "$root_dir/rom-runtime/src/main/java" \
-    "$root_dir/demo-app/src/main/java" \
+    "$root_dir/game-app/src/main/java" \
     -type f -name '*.java' -print0
 )
 
@@ -43,40 +37,37 @@ jar --create --file "$work_dir/classes.jar" -C "$classes_dir" .
 
 "$build_tools/aapt2" link \
   -I "$android_jar" \
-  --manifest "$root_dir/demo-app/AndroidManifest.xml" \
+  --manifest "$root_dir/game-app/AndroidManifest.xml" \
   --min-sdk-version 23 \
   --target-sdk-version "$android_api" \
-  --version-code 23 \
-  --version-name 0.23.1 \
-  -A "$assets_dir" \
+  --version-code 24 \
+  --version-name 0.24.0 \
   -o "$work_dir/base.apk"
 
 (cd "$dex_dir" && zip -q -j "$work_dir/base.apk" classes.dex)
 "$build_tools/zipalign" -f -p 4 "$work_dir/base.apk" "$work_dir/aligned.apk"
 
 keytool -genkeypair \
-  -keystore "$work_dir/demo.keystore" \
+  -keystore "$work_dir/game.keystore" \
   -storepass android \
   -keypass android \
-  -alias demo \
+  -alias game \
   -keyalg RSA \
   -keysize 2048 \
   -validity 3650 \
-  -dname "CN=Rings of Power Native Preview,O=Clean Room,C=US" \
+  -dname "CN=Rings of Power Game,O=Clean Room,C=US" \
   >/dev/null 2>&1
 
 "$build_tools/apksigner" sign \
-  --ks "$work_dir/demo.keystore" \
-  --ks-key-alias demo \
+  --ks "$work_dir/game.keystore" \
+  --ks-key-alias game \
   --ks-pass pass:android \
   --key-pass pass:android \
   --out "$output_apk" \
   "$work_dir/aligned.apk"
 "$build_tools/apksigner" verify --verbose "$output_apk"
 "$build_tools/aapt2" dump badging "$output_apk" \
-  | grep -q "package: name='com.jimmeali.ringsofpower.nativepreview'"
+  | grep -q "package: name='com.jimmeali.ringsofpower.game'"
 unzip -t "$output_apk" >/dev/null
 unzip -l "$output_apk" | grep -q 'classes.dex'
-unzip -l "$output_apk" | grep -q 'assets/audio-overrides.json'
-unzip -l "$output_apk" | grep -q 'assets/music/selector-08.ogg'
-echo "Built demo APK: $output_apk"
+echo "Built game APK: $output_apk"
