@@ -12,7 +12,10 @@ from extract_type1_resources import EXPECTED_SHA256
 Z80_DRIVER_START = 0x0EBB6E
 Z80_DRIVER_SIZE = 0x1577
 SFX_TABLE_START = 0x0FCAE2
-SFX_RECORDS = 90
+# Static callers and the surrounding ROM structure verify IDs 0-38. Although
+# the dispatcher accepts values below 0x5A, bytes after record 38 belong to
+# other tables and 68000 code rather than a 90-record SFX bank.
+SFX_RECORDS = 39
 SFX_RECORD_SIZE = 0x16
 INSTRUMENT_POINTER_TABLE = 0x0382
 INSTRUMENTS = 32
