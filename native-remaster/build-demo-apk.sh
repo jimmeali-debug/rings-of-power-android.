@@ -46,8 +46,8 @@ jar --create --file "$work_dir/classes.jar" -C "$classes_dir" .
   --manifest "$root_dir/demo-app/AndroidManifest.xml" \
   --min-sdk-version 23 \
   --target-sdk-version "$android_api" \
-  --version-code 1 \
-  --version-name 0.1.0 \
+  --version-code 23 \
+  --version-name 0.23.1 \
   -A "$assets_dir" \
   -o "$work_dir/base.apk"
 
@@ -62,7 +62,7 @@ keytool -genkeypair \
   -keyalg RSA \
   -keysize 2048 \
   -validity 3650 \
-  -dname "CN=Rings of Power Demo,O=Clean Room,C=US" \
+  -dname "CN=Rings of Power Native Preview,O=Clean Room,C=US" \
   >/dev/null 2>&1
 
 "$build_tools/apksigner" sign \
@@ -73,6 +73,8 @@ keytool -genkeypair \
   --out "$output_apk" \
   "$work_dir/aligned.apk"
 "$build_tools/apksigner" verify --verbose "$output_apk"
+"$build_tools/aapt2" dump badging "$output_apk" \
+  | grep -q "package: name='com.jimmeali.ringsofpower.nativepreview'"
 unzip -t "$output_apk" >/dev/null
 unzip -l "$output_apk" | grep -q 'classes.dex'
 unzip -l "$output_apk" | grep -q 'assets/audio-overrides.json'
