@@ -24,3 +24,9 @@ jobs:
           java-version: '17'
       - name: Compile and test audio runtime
         run: bash native-remaster/test-audio-runtime.sh
+      - name: Test Android storage adapter
+        run: bash native-remaster/test-android-storage.sh
+      - name: Install Android API 35
+        run: sdkmanager 'platforms;android-35'
+      - name: Compile Android storage adapter
+        run: bash native-remaster/compile-android-storage.sh
