@@ -31,12 +31,17 @@ For sound IDs below `0x5A`, routine `0x017586` computes:
 0x0FCAE2 + sound_id * 0x16
 ```
 
-This proves a 90-entry normal SFX table with a 22-byte stride, occupying
-`0x0FCAE2-0x0FD29E`. The routine alternates between two Z80 command channels.
+This proves the dispatcher's addressing rule, but not that all 90 addressable
+slots are records. Static call sites and the surrounding ROM structure verify
+normal IDs 0-38: 39 records with a 22-byte stride, occupying
+`0x0FCAE2-0x0FCE3C`. Bytes after record 38 transition into other tables and
+68000 code. Treating the entire numeric range as an SFX bank would therefore
+misclassify unrelated ROM data. The routine alternates between two Z80 effect
+voices.
 
 IDs `0x5A-0x60` use seven special hard-coded pointers and are intentionally
-left for the next command-format pass rather than being forced into the normal
-22-byte layout.
+left out of the normal 22-byte layout. Statically observed callers use special
+IDs `0x5B`, `0x5E`, `0x5F`, and `0x60`.
 
 ## Extractor
 
@@ -50,7 +55,7 @@ The command writes:
 
 - `z80-driver.bin`
 - 19 `music-XX.bin` selector ranges
-- 90 `sfx-XX.bin` normal SFX records
+- 39 `sfx-XX.bin` verified normal SFX records (IDs 0-38)
 - `manifest.tsv` with ROM ranges, sizes, SHA-256 hashes, and filenames
 
 ## Next analysis targets
