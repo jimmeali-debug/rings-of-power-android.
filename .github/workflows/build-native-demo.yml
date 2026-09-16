@@ -1,4 +1,4 @@
-name: Build native audio demo APK
+name: Build native remaster demo APK
 
 on:
   workflow_dispatch:
@@ -39,11 +39,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends ffmpeg
       - name: Build signed demo APK
-        run: bash native-remaster/build-demo-apk.sh apk-output/Rings-of-Power-Native-Audio-Demo.apk
+        run: bash native-remaster/build-demo-apk.sh apk-output/Rings-of-Power-Native-Demo.apk
       - name: Upload demo APK
         uses: actions/upload-artifact@v4
         with:
-          name: Rings-of-Power-Native-Audio-Demo
-          path: apk-output/Rings-of-Power-Native-Audio-Demo.apk
+          name: Rings-of-Power-Native-Demo
+          path: apk-output/Rings-of-Power-Native-Demo.apk
           if-no-files-found: error
           retention-days: 30
