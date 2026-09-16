@@ -43,9 +43,10 @@ The current deterministic tools operate only on a matching, owner-supplied ROM:
 - `tools/decode_special_dac.py` reconstructs the seven delta-coded DAC samples.
 - `tools/decode_instrument_programs.py` decodes all YM2612 program parameters.
 - `tools/build_audio_playback_manifest.py` joins every verified audio component.
+- `tools/export_ym2612_trace.py` reproduces voice allocation and chip writes.
 
 Verified formats and code paths are recorded in
-`docs/REVERSE_ENGINEERING_M1.md` through `docs/REVERSE_ENGINEERING_M13.md`.
+`docs/REVERSE_ENGINEERING_M1.md` through `docs/REVERSE_ENGINEERING_M14.md`.
 Generated text, binaries, and PNGs stay outside source control.
 
 ## ROM boundary
