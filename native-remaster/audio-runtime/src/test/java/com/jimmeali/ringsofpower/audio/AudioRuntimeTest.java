@@ -5,6 +5,10 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 public final class AudioRuntimeTest {
     private static final String ROM_SHA =
@@ -42,8 +46,22 @@ public final class AudioRuntimeTest {
         check(
                 manager.resolve(AudioAssetKind.NORMAL_SFX, 3).mode() == AudioResolution.Mode.ORIGINAL,
                 "manager partial fallback");
+        try (OpenedAudioOverride opened = manager.openOverride(AudioAssetKind.MUSIC, 8).orElseThrow()) {
+            check(opened.entry().key().id() == 8, "opened override metadata");
+            check(
+                    java.util.Arrays.equals(opened.input().readAllBytes(), music),
+                    "opened override bytes");
+        }
+        check(
+                !manager.openOverride(AudioAssetKind.MUSIC, 9).isPresent(),
+                "missing override stream fallback");
         manager.deactivate();
         check(!manager.activeManifest().isPresent(), "manager deactivate");
+        check(
+                !manager.openOverride(AudioAssetKind.MUSIC, 8).isPresent(),
+                "inactive override stream fallback");
+
+        verifyOpenReplacementSynchronization(manifest, files);
 
         expectFailure(() -> AudioOverrideManifest.parse(
                 manifestJson.replace("music/selector-08.ogg", "../escape.ogg")));
@@ -71,6 +89,54 @@ public final class AudioRuntimeTest {
                 ",\n    " + musicEntry(music).replace("\n", "\n    ") + "\n  ]");
         expectFailure(() -> AudioOverrideManifest.parse(duplicate));
         System.out.println("AudioRuntimeTest: all checks passed");
+    }
+
+    private static void verifyOpenReplacementSynchronization(
+            AudioOverrideManifest manifest, Map<String, byte[]> files) throws Exception {
+        CountDownLatch playbackOpenEntered = new CountDownLatch(1);
+        CountDownLatch allowPlaybackOpen = new CountDownLatch(1);
+        CountDownLatch deactivated = new CountDownLatch(1);
+        AtomicInteger opens = new AtomicInteger();
+        AtomicReference<Throwable> threadFailure = new AtomicReference<>();
+        AudioOverrideManager manager = new AudioOverrideManager();
+        AudioAssetSource blockingSource = path -> {
+            if (opens.incrementAndGet() > manifest.entries().size()) {
+                playbackOpenEntered.countDown();
+                try {
+                    if (!allowPlaybackOpen.await(2, TimeUnit.SECONDS)) {
+                        throw new IOException("Timed out waiting to finish playback open");
+                    }
+                } catch (InterruptedException exception) {
+                    Thread.currentThread().interrupt();
+                    throw new IOException("Interrupted while opening playback stream", exception);
+                }
+            }
+            return new ByteArrayInputStream(files.get(path));
+        };
+        manager.activate(manifest, ROM_SHA, blockingSource);
+
+        Thread opener = new Thread(() -> {
+            try (OpenedAudioOverride ignored =
+                    manager.openOverride(AudioAssetKind.MUSIC, 8).orElseThrow()) {
+                // Opening is the behavior under test.
+            } catch (Throwable failure) {
+                threadFailure.set(failure);
+            }
+        });
+        opener.start();
+        check(playbackOpenEntered.await(2, TimeUnit.SECONDS), "playback open entered");
+
+        Thread deactivator = new Thread(() -> {
+            manager.deactivate();
+            deactivated.countDown();
+        });
+        deactivator.start();
+        check(!deactivated.await(100, TimeUnit.MILLISECONDS), "replacement waits for open");
+        allowPlaybackOpen.countDown();
+        opener.join(2_000);
+        deactivator.join(2_000);
+        check(threadFailure.get() == null, "playback open thread");
+        check(deactivated.getCount() == 0, "replacement completed after open");
     }
 
     private static String manifest(byte[] music, byte[] effect) throws Exception {
