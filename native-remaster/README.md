@@ -22,5 +22,20 @@ Run its portable test suite with:
 bash native-remaster/test-audio-runtime.sh
 ```
 
-The next Android layer will adapt Storage Access Framework document trees to
-`AudioAssetSource` and connect resolved music/SFX entries to the native mixer.
+The Android document-tree adapter lives in `android-storage`.
+`SafAudioOverrideController`
+persists a selected document-tree permission, reads the bounded manifest,
+verifies every OGG through `ContentResolver`, activates atomically, and releases
+failed or replaced permissions.
+
+Run its provider simulation tests with:
+
+```bash
+bash native-remaster/test-android-storage.sh
+```
+
+Compile the production adapter against Android API 35 with:
+
+```bash
+ANDROID_HOME=/path/to/android-sdk bash native-remaster/compile-android-storage.sh
+```
