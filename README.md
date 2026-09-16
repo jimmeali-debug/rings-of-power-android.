@@ -44,9 +44,10 @@ The current deterministic tools operate only on a matching, owner-supplied ROM:
 - `tools/decode_instrument_programs.py` decodes all YM2612 program parameters.
 - `tools/build_audio_playback_manifest.py` joins every verified audio component.
 - `tools/export_ym2612_trace.py` reproduces voice allocation and chip writes.
+- `tools/export_vgm.py` packages verified chip writes as playable VGM files.
 
 Verified formats and code paths are recorded in
-`docs/REVERSE_ENGINEERING_M1.md` through `docs/REVERSE_ENGINEERING_M14.md`.
+`docs/REVERSE_ENGINEERING_M1.md` through `docs/REVERSE_ENGINEERING_M15.md`.
 Generated text, binaries, and PNGs stay outside source control.
 
 ## ROM boundary
