@@ -12,11 +12,15 @@ import java.util.Optional;
 public final class VerifiedAudioOverridePack {
     private final AudioOverrideManifest manifest;
     private final Map<AudioAssetKey, AudioOverrideEntry> entries;
+    private final AudioAssetSource source;
 
     private VerifiedAudioOverridePack(
-            AudioOverrideManifest manifest, Map<AudioAssetKey, AudioOverrideEntry> entries) {
+            AudioOverrideManifest manifest,
+            Map<AudioAssetKey, AudioOverrideEntry> entries,
+            AudioAssetSource source) {
         this.manifest = manifest;
         this.entries = Collections.unmodifiableMap(entries);
+        this.source = source;
     }
 
     public static VerifiedAudioOverridePack verify(
@@ -52,7 +56,7 @@ public final class VerifiedAudioOverridePack {
             }
             verified.put(entry.key(), entry);
         }
-        return new VerifiedAudioOverridePack(manifest, verified);
+        return new VerifiedAudioOverridePack(manifest, verified, source);
     }
 
     public AudioOverrideManifest manifest() {
@@ -61,6 +65,18 @@ public final class VerifiedAudioOverridePack {
 
     public Optional<AudioOverrideEntry> resolve(AudioAssetKind kind, int id) {
         return Optional.ofNullable(entries.get(new AudioAssetKey(kind, id)));
+    }
+
+    public Optional<OpenedAudioOverride> open(AudioAssetKind kind, int id) throws IOException {
+        AudioOverrideEntry entry = entries.get(new AudioAssetKey(kind, id));
+        if (entry == null) {
+            return Optional.empty();
+        }
+        InputStream input = source.open(entry.path());
+        if (input == null) {
+            throw new IOException("Override source returned no stream: " + entry.path());
+        }
+        return Optional.of(new OpenedAudioOverride(entry, input));
     }
 
     private static MessageDigest sha256() {
