@@ -3,7 +3,7 @@ name: Build Rings of Power Android APK
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [ main, console-mode-alpha-5 ]
     paths:
       - '.github/workflows/build-apk.yml'
       - 'tools/patch_console_mode.py'
