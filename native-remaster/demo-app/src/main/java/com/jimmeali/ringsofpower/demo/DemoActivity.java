@@ -162,7 +162,7 @@ public final class DemoActivity extends Activity {
 
     private void chooseRom() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.setType("application/octet-stream");
+        intent.setType("*/*");
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
                 | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
@@ -183,8 +183,7 @@ public final class DemoActivity extends Activity {
             } catch (SecurityException ignored) {
                 // Some providers grant access for the current process only.
             }
-            preferences.edit().putString(SAVED_ROM, tree.toString()).apply();
-            loadRom(tree, "Selected ROM active");
+            loadRom(tree, "Selected ROM active", true);
             return;
         }
         if (requestCode != PICK_PACK) {
@@ -205,11 +204,12 @@ public final class DemoActivity extends Activity {
     private void restoreRom() {
         String saved = preferences.getString(SAVED_ROM, null);
         if (saved != null) {
-            loadRom(Uri.parse(saved), "Restored ROM scene");
+            loadRom(Uri.parse(saved), "Restored ROM scene", false);
         }
     }
 
-    private void loadRom(Uri uri, String successMessage) {
+    private void loadRom(Uri uri, String successMessage, boolean rememberSelection) {
+        String previous = preferences.getString(SAVED_ROM, null);
         setStatus("Hashing and decoding selected ROM…");
         worker.execute(() -> {
             try {
@@ -218,15 +218,33 @@ public final class DemoActivity extends Activity {
                         rom, RomSceneDecoder.Scene.SCREEN_B);
                 Bitmap bitmap = Bitmap.createBitmap(
                         scene.argb(), scene.width(), scene.height(), Bitmap.Config.ARGB_8888);
+                if (rememberSelection) {
+                    preferences.edit().putString(SAVED_ROM, uri.toString()).apply();
+                    if (previous != null && !previous.equals(uri.toString())) {
+                        releaseRomPermission(Uri.parse(previous));
+                    }
+                }
                 runOnUiThread(() -> {
                     game.setSceneBitmap(bitmap);
                     status.setText(successMessage + " — real screen-b plane decoded in memory");
                 });
             } catch (Exception failure) {
-                preferences.edit().remove(SAVED_ROM).apply();
-                setStatus("ROM rejected; clean-room scene retained: " + safeMessage(failure));
+                if (!rememberSelection) {
+                    preferences.edit().remove(SAVED_ROM).apply();
+                }
+                releaseRomPermission(uri);
+                setStatus("ROM rejected; current scene retained: " + safeMessage(failure));
             }
         });
+    }
+
+    private void releaseRomPermission(Uri uri) {
+        try {
+            getContentResolver().releasePersistableUriPermission(
+                    uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        } catch (SecurityException ignored) {
+            // The provider may already have removed or never persisted access.
+        }
     }
 
     private byte[] readRom(Uri uri) throws IOException {
