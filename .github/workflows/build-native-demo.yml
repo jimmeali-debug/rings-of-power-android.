@@ -1,0 +1,45 @@
+name: Build native audio demo APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'native-remaster/**'
+      - 'tools/generate_demo_audio_pack.py'
+      - '.github/workflows/build-native-demo.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-demo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Ensure Android SDK packages
+        run: |
+          sdkmanager_bin="$(find "$ANDROID_HOME/cmdline-tools" -type f -path '*/bin/sdkmanager' -print -quit)"
+          test -n "$sdkmanager_bin"
+          packages=()
+          test -f "$ANDROID_HOME/platforms/android-35/android.jar" || packages+=('platforms;android-35')
+          test -x "$ANDROID_HOME/build-tools/35.0.0/aapt2" || packages+=('build-tools;35.0.0')
+          if (( ${#packages[@]} )); then
+            yes | "$sdkmanager_bin" --licenses >/dev/null || true
+            "$sdkmanager_bin" "${packages[@]}"
+          fi
+      - name: Build signed demo APK
+        run: bash native-remaster/build-demo-apk.sh apk-output/Rings-of-Power-Native-Audio-Demo.apk
+      - name: Upload demo APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rings-of-Power-Native-Audio-Demo
+          path: apk-output/Rings-of-Power-Native-Audio-Demo.apk
+          if-no-files-found: error
+          retention-days: 30
