@@ -1,6 +1,7 @@
 package com.jimmeali.ringsofpower.demo;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -34,6 +35,7 @@ final class DemoGameView extends View {
     private float directionY;
     private long previousFrame;
     private Listener listener;
+    private Bitmap sceneBitmap;
 
     DemoGameView(Context context) {
         super(context);
@@ -44,6 +46,14 @@ final class DemoGameView extends View {
 
     void setListener(Listener listener) {
         this.listener = listener;
+    }
+
+    void setSceneBitmap(Bitmap sceneBitmap) {
+        this.sceneBitmap = sceneBitmap;
+        setContentDescription(sceneBitmap == null
+                ? "Playable clean-room top-down demo"
+                : "Playable scene decoded from the selected Rings of Power ROM");
+        invalidate();
     }
 
     @Override
@@ -64,15 +74,28 @@ final class DemoGameView extends View {
 
         paint.setStyle(Paint.Style.FILL);
         canvas.drawColor(Color.rgb(8, 13, 22));
-        for (int y = 0; y < TILES_Y; y++) {
-            for (int x = 0; x < TILES_X; x++) {
-                paint.setColor(tileColor(x, y));
-                canvas.drawRect(
-                        offsetX + x * tile,
-                        offsetY + y * tile,
-                        offsetX + (x + 1) * tile + 1,
-                        offsetY + (y + 1) * tile + 1,
-                        paint);
+        if (sceneBitmap != null) {
+            paint.setFilterBitmap(false);
+            canvas.drawBitmap(
+                    sceneBitmap,
+                    null,
+                    new RectF(
+                            offsetX,
+                            offsetY,
+                            offsetX + tile * TILES_X,
+                            offsetY + tile * TILES_Y),
+                    paint);
+        } else {
+            for (int y = 0; y < TILES_Y; y++) {
+                for (int x = 0; x < TILES_X; x++) {
+                    paint.setColor(tileColor(x, y));
+                    canvas.drawRect(
+                            offsetX + x * tile,
+                            offsetY + y * tile,
+                            offsetX + (x + 1) * tile + 1,
+                            offsetY + (y + 1) * tile + 1,
+                            paint);
+                }
             }
         }
 
@@ -177,7 +200,7 @@ final class DemoGameView extends View {
     private void move(float deltaX, float deltaY) {
         float nextX = clamp(playerX + deltaX, 0.5f, TILES_X - 0.5f);
         float nextY = clamp(playerY + deltaY, 0.5f, TILES_Y - 0.5f);
-        if (!isWater((int) nextX, (int) nextY)) {
+        if (sceneBitmap != null || !isWater((int) nextX, (int) nextY)) {
             playerX = nextX;
             playerY = nextY;
         }
