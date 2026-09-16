@@ -81,24 +81,12 @@ jobs:
 
           home = Path("lemuroid-app/src/main/java/com/swordfish/lemuroid/app/mobile/feature/home/HomeScreen.kt")
           text = home.read_text()
-          old = """        HomeRow(
-              stringResource(id = R.string.recent),
-              state.recentGames,
-              onGameClicked,
-              onGameLongClick,
-          )
-          HomeRow(
-              stringResource(id = R.string.favorites),
-              state.favoritesGames,
-              onGameClicked,
-              onGameLongClick,
-          )
-          HomeRow(
-              stringResource(id = R.string.discover),
-              state.discoveryGames,
-              onGameClicked,
-              onGameLongClick,
-          )"""
+          start_marker = '        HomeRow(\n            stringResource(id = R.string.recent),'
+          end_marker = '\n    }\n}\n\n@OptIn'
+          start = text.find(start_marker)
+          end = text.find(end_marker, start)
+          if start < 0 or end < 0:
+              raise SystemExit("Home screen anchor not found")
           new = """        val ringsGames =
               (state.recentGames + state.favoritesGames + state.discoveryGames)
                   .distinctBy { it.id }
@@ -108,9 +96,7 @@ jobs:
               onGameClicked,
               onGameLongClick,
           )"""
-          if old not in text:
-              raise SystemExit("Home screen patch target not found")
-          home.write_text(text.replace(old, new))
+          home.write_text(text[:start] + new + text[end:])
           PY
           grep -q 'Play Rings of Power' lemuroid-app/src/main/java/com/swordfish/lemuroid/app/mobile/feature/home/HomeScreen.kt
           grep -q 'bottomBar = { }' lemuroid-app/src/main/java/com/swordfish/lemuroid/app/mobile/feature/main/MainActivity.kt
