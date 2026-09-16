@@ -20,23 +20,16 @@ Genesis Plus GX Libretro core. It provides:
 This compatibility APK is the playable baseline. It is not yet the later native
 remaster with replacement HD graphics and remastered audio.
 
-## Native game build
+## Experimental native rewrite
 
-The repository now builds `Rings-of-Power-Game.apk`, the continuing native
-Android game application. It requires Android 6.0 or newer and an owner-supplied
-matching 1 MiB USA/Europe ROM.
+The `native-remaster` directory is an unfinished clean-room rewrite and is not
+a playable replacement for the original game. Its current scene renderer and
+movement shell are engineering research only. It does not yet implement the
+original combat, towns, dialogue, inventory, quests, sprites, or complete world,
+and no partial native APK is published as the game.
 
-Open **Actions**, select **Build Rings of Power game APK**, open the latest
-successful run, and download the `Rings-of-Power-Game` artifact. The app
-verifies the selected ROM, decodes original map, tile, and palette records only
-in memory, and starts the restored adventure.
-
-The current game build provides New Game and Continue, two connected ROM-backed
-areas, touch and hardware-controller movement, an interactable Sage quest, and
-automatic area, position, and quest saving. Future milestones extend this same
-application with additional original systems and content; separate demo APKs are
-no longer produced. No ROM or extracted commercial assets are bundled or
-uploaded.
+For complete playability, use the compatibility APK described above. Native
+work remains internal until it reaches a genuinely playable milestone.
 
 ## Build
 

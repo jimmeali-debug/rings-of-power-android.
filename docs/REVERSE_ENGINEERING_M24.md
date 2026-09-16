@@ -1,9 +1,8 @@
-# Milestone 24: game application foundation
+# Milestone 24: experimental native application shell
 
-This milestone replaces the vertical-slice demo application with the first
-actual game build. The installed app is now **Rings of Power**, package
-`com.jimmeali.ringsofpower.game`, and the build artifact is
-`Rings-of-Power-Game.apk`.
+This milestone records an experimental native application shell. It is not a
+playable replacement for the original game. Its internal Android package is
+`com.jimmeali.ringsofpower.game`; the partial APK is not published as the game.
 
 ## Player-facing game flow
 
@@ -21,10 +20,9 @@ grants the app read access, and decoded scene pixels remain in memory.
 
 ## Engineering boundary
 
-This is the production game shell and save/progression path, not a claim that
+This is a research shell and save/progression path, not a claim that
 all original locations, sprites, combat, dialogue, inventory, or quests have
-already been reconstructed. Future milestones extend this same app rather than
-shipping separate demos.
+already been reconstructed. Future native milestones remain experimental until feature-complete playability is demonstrated.
 
 `GameProgressTest` verifies new-game defaults, area transitions, quest state,
 invalid-area recovery, and coordinate clamping. The game APK build additionally
