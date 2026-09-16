@@ -20,6 +20,22 @@ Genesis Plus GX Libretro core. It provides:
 This compatibility APK is the playable baseline. It is not yet the later native
 remaster with replacement HD graphics and remastered audio.
 
+## Working native demo
+
+The repository also builds `Rings-of-Power-Native-Demo.apk`, a clean-room
+playable vertical slice requiring Android 6.0 or newer. It includes a small
+top-down scene, touchscreen and hardware-controller movement, an interactable
+Sage, a generated Vorbis demo track, verified audio override playback, and the
+Android folder-picker importer.
+
+Open **Actions**, select **Build native remaster demo APK**, open the latest
+successful run, and download the `Rings-of-Power-Native-Demo` artifact. Extract
+the ZIP and install the APK. In the scene, move to the Sage and press **Action**
+to exercise the complete verified playback path.
+
+The demo contains no extracted commercial graphics, maps, dialogue, or audio.
+It is a working native systems slice, not yet the complete game recreation.
+
 ## Build
 
 GitHub Actions clones a pinned upstream Lemuroid revision, including its
@@ -56,7 +72,7 @@ verified playback streams with explicit original-audio fallback. The
 system folder picker.
 
 Verified formats and code paths are recorded in
-`docs/REVERSE_ENGINEERING_M1.md` through `docs/REVERSE_ENGINEERING_M21.md`.
+`docs/REVERSE_ENGINEERING_M1.md` through `docs/REVERSE_ENGINEERING_M22.md`.
 Generated text, binaries, and PNGs stay outside source control.
 
 ## ROM boundary
