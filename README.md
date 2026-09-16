@@ -45,9 +45,10 @@ The current deterministic tools operate only on a matching, owner-supplied ROM:
 - `tools/build_audio_playback_manifest.py` joins every verified audio component.
 - `tools/export_ym2612_trace.py` reproduces voice allocation and chip writes.
 - `tools/export_vgm.py` packages verified chip writes as playable VGM files.
+- `tools/render_music_wav.py` produces stereo WAV reference renders with FFmpeg/libgme.
 
 Verified formats and code paths are recorded in
-`docs/REVERSE_ENGINEERING_M1.md` through `docs/REVERSE_ENGINEERING_M15.md`.
+`docs/REVERSE_ENGINEERING_M1.md` through `docs/REVERSE_ENGINEERING_M16.md`.
 Generated text, binaries, and PNGs stay outside source control.
 
 ## ROM boundary
