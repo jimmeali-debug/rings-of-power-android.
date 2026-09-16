@@ -33,7 +33,7 @@ jobs:
         run: |
           sed -i 's/applicationId = "com.swordfish.lemuroid"/applicationId = "com.jimmeali.ringsofpower"/' lemuroid-app/build.gradle.kts
           sed -i 's/resValue("string", "lemuroid_name", "LemuroiDebug")/resValue("string", "lemuroid_name", "Rings of Power")/' lemuroid-app/build.gradle.kts
-          sed -i 's/versionNameSuffix = "-DEBUG"/versionNameSuffix = "-RINGS-ALPHA-3"/' lemuroid-app/build.gradle.kts
+          sed -i 's/versionNameSuffix = "-DEBUG"/versionNameSuffix = "-RINGS-ALPHA-4"/' lemuroid-app/build.gradle.kts
           mkdir -p lemuroid-app/src/main/res/drawable
           cat > lemuroid-app/src/main/res/drawable/rings_launcher.xml <<'EOF'
           <vector xmlns:android="http://schemas.android.com/apk/res/android"
@@ -65,6 +65,56 @@ jobs:
           grep -q 'Select your Rings of Power folder' "$strings"
           grep -q 'showNoMicrophonePermissionCard = false' lemuroid-app/src/main/java/com/swordfish/lemuroid/app/mobile/feature/home/HomeViewModel.kt
 
+      - name: Create single-game home experience
+        working-directory: upstream
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          main = Path("lemuroid-app/src/main/java/com/swordfish/lemuroid/app/mobile/feature/main/MainActivity.kt")
+          text = main.read_text()
+          old = "bottomBar = { MainNavigationBar(currentRoute, navController) },"
+          new = "bottomBar = { },"
+          if old not in text:
+              raise SystemExit("Main navigation patch target not found")
+          main.write_text(text.replace(old, new))
+
+          home = Path("lemuroid-app/src/main/java/com/swordfish/lemuroid/app/mobile/feature/home/HomeScreen.kt")
+          text = home.read_text()
+          old = """        HomeRow(
+              stringResource(id = R.string.recent),
+              state.recentGames,
+              onGameClicked,
+              onGameLongClick,
+          )
+          HomeRow(
+              stringResource(id = R.string.favorites),
+              state.favoritesGames,
+              onGameClicked,
+              onGameLongClick,
+          )
+          HomeRow(
+              stringResource(id = R.string.discover),
+              state.discoveryGames,
+              onGameClicked,
+              onGameLongClick,
+          )"""
+          new = """        val ringsGames =
+              (state.recentGames + state.favoritesGames + state.discoveryGames)
+                  .distinctBy { it.id }
+          HomeRow(
+              "Play Rings of Power",
+              ringsGames.take(1),
+              onGameClicked,
+              onGameLongClick,
+          )"""
+          if old not in text:
+              raise SystemExit("Home screen patch target not found")
+          home.write_text(text.replace(old, new))
+          PY
+          grep -q 'Play Rings of Power' lemuroid-app/src/main/java/com/swordfish/lemuroid/app/mobile/feature/home/HomeScreen.kt
+          grep -q 'bottomBar = { }' lemuroid-app/src/main/java/com/swordfish/lemuroid/app/mobile/feature/main/MainActivity.kt
+
       - name: Keep Genesis core only
         working-directory: upstream
         run: |
@@ -87,12 +137,12 @@ jobs:
           mkdir -p apk-output
           source_apk="$(find upstream/lemuroid-app/build/outputs/apk/freeBundle/debug -type f -name '*.apk' -print -quit)"
           test -n "$source_apk"
-          cp "$source_apk" apk-output/Rings-of-Power-Android-alpha-3.apk
+          cp "$source_apk" apk-output/Rings-of-Power-Android-alpha-4.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Rings-of-Power-Android-alpha-3
-          path: apk-output/Rings-of-Power-Android-alpha-3.apk
+          name: Rings-of-Power-Android-alpha-4
+          path: apk-output/Rings-of-Power-Android-alpha-4.apk
           if-no-files-found: error
           retention-days: 30
