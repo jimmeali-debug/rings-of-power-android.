@@ -76,6 +76,39 @@ def event_tsv(events: list[Event]) -> str:
     return "\n".join(rows) + "\n"
 
 
+def variable_length(value: int) -> bytes:
+    if value < 0:
+        raise ValueError("MIDI delta cannot be negative")
+    encoded = [value & 0x7F]
+    value >>= 7
+    while value:
+        encoded.append(0x80 | (value & 0x7F))
+        value >>= 7
+    return bytes(reversed(encoded))
+
+
+def midi_file(events: list[Event], duration: int) -> bytes:
+    """Create a type-0 MIDI whose ticks preserve the verified 60 Hz timeline.
+
+    Division 60 plus a 60 BPM tempo makes one MIDI tick exactly 1/60 second.
+    Program numbers remain the game's native patch IDs, not General MIDI names.
+    """
+    track = bytearray()
+    track.extend(b"\x00\xFF\x51\x03\x0F\x42\x40")  # 1,000,000 us/quarter
+    previous_tick = 0
+    for event in events:
+        track.extend(variable_length(event.tick - previous_tick))
+        track.append(event.status)
+        track.append(event.data1)
+        if event.data2 is not None:
+            track.append(event.data2)
+        previous_tick = event.tick
+    track.extend(variable_length(duration - previous_tick))
+    track.extend(b"\xFF\x2F\x00")
+    header = b"MThd" + (6).to_bytes(4, "big") + (0).to_bytes(2, "big") + (1).to_bytes(2, "big") + (60).to_bytes(2, "big")
+    return header + b"MTrk" + len(track).to_bytes(4, "big") + bytes(track)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("rom", type=Path)
@@ -90,7 +123,7 @@ def main() -> int:
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
     summary = [
-        "selector\trom_start\trom_end\tevents\tduration_ticks\tparsed_bytes\tpadding_bytes\tchannels\tfile"
+        "selector\trom_start\trom_end\tevents\tduration_ticks\tparsed_bytes\tpadding_bytes\tchannels\tevents_file\tmidi_file"
     ]
     for selector, start in sorted(MUSIC_POINTERS.items()):
         end = int.from_bytes(data[start - 4 : start], "big")
@@ -98,10 +131,12 @@ def main() -> int:
         events, duration, consumed = decode_stream(raw)
         channels = ",".join(str(value) for value in sorted({event.channel for event in events}))
         filename = f"music-{selector:02d}-events.tsv"
+        midi_name = f"music-{selector:02d}.mid"
         (args.output_dir / filename).write_text(event_tsv(events), encoding="utf-8")
+        (args.output_dir / midi_name).write_bytes(midi_file(events, duration))
         summary.append(
             f"{selector}\t0x{start:06X}\t0x{end:06X}\t{len(events)}\t{duration}\t"
-            f"{consumed}\t{len(raw) - consumed}\t{channels}\t{filename}"
+            f"{consumed}\t{len(raw) - consumed}\t{channels}\t{filename}\t{midi_name}"
         )
     (args.output_dir / "manifest.tsv").write_text("\n".join(summary) + "\n", encoding="utf-8")
     return 0
