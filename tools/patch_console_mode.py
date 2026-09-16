@@ -230,3 +230,5 @@ object RingsConsoleCommands {
 
 if __name__ == "__main__":
     main()
+
+# GitHub Actions build trigger for alpha 5.
