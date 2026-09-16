@@ -13,11 +13,19 @@ public final class AudioOverrideManager {
             AudioAssetSource source) throws IOException {
         VerifiedAudioOverridePack verified =
                 VerifiedAudioOverridePack.verify(manifest, selectedRomSha256, source);
-        active.set(verified);
+        synchronized (this) {
+            active.set(verified);
+        }
     }
 
-    public void deactivate() {
+    public synchronized void deactivate() {
         active.set(null);
+    }
+
+    public synchronized Optional<OpenedAudioOverride> openOverride(
+            AudioAssetKind kind, int id) throws IOException {
+        VerifiedAudioOverridePack pack = active.get();
+        return pack == null ? Optional.empty() : pack.open(kind, id);
     }
 
     public Optional<AudioOverrideManifest> activeManifest() {
