@@ -63,18 +63,34 @@ public final class DemoActivity extends Activity {
         content.setGravity(Gravity.CENTER_HORIZONTAL);
         content.setBackgroundColor(Color.rgb(13, 18, 28));
 
-        TextView title = text("Rings of Power\nNative Audio Demo", 28, Color.rgb(244, 197, 66));
+        TextView title = text("Rings of Power\nNative Remaster Demo", 28, Color.rgb(244, 197, 66));
         title.setGravity(Gravity.CENTER);
         content.addView(title, matchWrap());
 
         TextView description = text(
-                "This clean-room demo exercises the real verified override pipeline. "
-                        + "It ships with a generated tone, or you can select an "
-                        + "audio override pack folder for the supported ROM revision.",
+                "Explore the clean-room playable scene with touch or a controller. "
+                        + "Reach the Sage and press Action to exercise the real verified "
+                        + "audio pipeline. You can also import an override-pack folder.",
                 16,
                 Color.rgb(224, 231, 255));
         description.setPadding(0, dp(18), 0, dp(18));
         content.addView(description, matchWrap());
+
+        DemoGameView game = new DemoGameView(this);
+        game.setListener(new DemoGameView.Listener() {
+            @Override
+            public void onMessage(String message) {
+                setStatus(message);
+            }
+
+            @Override
+            public void onSageInteraction() {
+                setStatus("The Sage invokes selector 08…");
+                playSelector();
+            }
+        });
+        content.addView(game, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, dp(430)));
 
         content.addView(button("Play selector 08", view -> playSelector()), matchWrap());
         content.addView(button("Stop", view -> stopPlayback()), matchWrap());
