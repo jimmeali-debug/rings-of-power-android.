@@ -39,7 +39,7 @@ jobs:
         run: |
           sed -i 's/applicationId = "com.swordfish.lemuroid"/applicationId = "com.jimmeali.ringsofpower.console"/' lemuroid-app/build.gradle.kts
           sed -i 's/resValue("string", "lemuroid_name", "LemuroiDebug")/resValue("string", "lemuroid_name", "Rings of Power Console")/' lemuroid-app/build.gradle.kts
-          sed -i 's/versionNameSuffix = "-DEBUG"/versionNameSuffix = "-RINGS-CONSOLE-ALPHA-6"/' lemuroid-app/build.gradle.kts
+          sed -i 's/versionNameSuffix = "-DEBUG"/versionNameSuffix = "-RINGS-CONSOLE-ALPHA-7"/' lemuroid-app/build.gradle.kts
           mkdir -p lemuroid-app/src/main/res/drawable
           cat > lemuroid-app/src/main/res/drawable/rings_launcher.xml <<'EOF'
           <vector xmlns:android="http://schemas.android.com/apk/res/android"
@@ -138,12 +138,12 @@ jobs:
           mkdir -p apk-output
           source_apk="$(find upstream/lemuroid-app/build/outputs/apk/freeBundle/debug -type f -name '*.apk' -print -quit)"
           test -n "$source_apk"
-          cp "$source_apk" apk-output/Rings-of-Power-Console-alpha-6.apk
+          cp "$source_apk" apk-output/Rings-of-Power-Console-alpha-7.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Rings-of-Power-Console-alpha-6
-          path: apk-output/Rings-of-Power-Console-alpha-6.apk
+          name: Rings-of-Power-Console-alpha-7
+          path: apk-output/Rings-of-Power-Console-alpha-7.apk
           if-no-files-found: error
           retention-days: 30
