@@ -19,7 +19,10 @@ SFX_RECORDS = 39
 SFX_RECORD_SIZE = 0x16
 INSTRUMENT_POINTER_TABLE = 0x0382
 INSTRUMENTS = 32
-INSTRUMENT_SIZE = 0x24
+INSTRUMENT_STRIDE = 0x24
+# The register-indexed logical view reaches offset 0x2D. Adjacent views overlap
+# because the pointer stride is smaller than the highest field offset.
+INSTRUMENT_VIEW_SIZE = 0x2E
 
 # Selectors 18 and 19 branch directly to the return path and have no resource.
 MUSIC_POINTERS = {
@@ -84,11 +87,11 @@ def main() -> int:
     for program in range(INSTRUMENTS):
         pointer_offset = INSTRUMENT_POINTER_TABLE + program * 2
         driver_offset = int.from_bytes(driver[pointer_offset : pointer_offset + 2], "little")
-        expected_offset = 0x10EC + program * INSTRUMENT_SIZE
+        expected_offset = 0x10EC + program * INSTRUMENT_STRIDE
         if driver_offset != expected_offset:
             raise ValueError(f"Unexpected instrument pointer for program {program}")
         start = Z80_DRIVER_START + driver_offset
-        end = start + INSTRUMENT_SIZE
+        end = start + INSTRUMENT_VIEW_SIZE
         filename = f"instrument-{program:02d}.bin"
         rows.append(
             write_resource(args.output_dir, filename, data[start:end], "instrument", str(program), start, end)
