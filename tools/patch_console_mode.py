@@ -46,7 +46,7 @@ internal fun RingsConsoleDialog(
         title = { Text("Rings of Power Console") },
         text = {
             Column {
-                Text("Examples: buc life 500, slash mana 9999, gold 30000, god, off. Void protection is automatic.")
+                Text("Examples: buc life 500, slash mana 500, gold 30000, god, off. Void protection is automatic.")
                 OutlinedTextField(
                     value = command,
                     onValueChange = { command = it },
@@ -95,7 +95,7 @@ object RingsConsoleCommands {
     fun parse(raw: String): Result {
         val command = raw.trim().lowercase()
         if (command == "off" || command == "unlock") {
-            return Result(emptyList(), true, "All stat locks disabled")
+            return Result(emptyList(), true, "All console cheats disabled; Void protection remains active")
         }
         if (command.startsWith("gold ")) {
             val parts = command.split(Regex("\\s+")).filter { it.isNotEmpty() }
@@ -110,13 +110,14 @@ object RingsConsoleCommands {
             )
         }
         if (command == "god") {
-            val cheats = mutableListOf<Cheat>()
-            characters.values.forEachIndexed { characterIndex, stats ->
-                listOf(stats.hp, stats.mp, stats.maxHp, stats.maxMp).forEachIndexed { statIndex, address ->
-                    cheats += Cheat(characterIndex * 4 + statIndex, formatCode(address, 9999))
-                }
-            }
-            return Result(cheats, false, "All party life and mana locked at 9999")
+            return Result(
+                listOf(
+                    Cheat(26, "AHCA-EAG0"),
+                    Cheat(27, "AK8T-GA82"),
+                ),
+                false,
+                "Safe infinite health and MP enabled",
+            )
         }
 
         val parts = command.split(Regex("\\s+")).filter { it.isNotEmpty() }
@@ -139,8 +140,8 @@ object RingsConsoleCommands {
             else -> throw IllegalArgumentException("Stat: life, mana, maxlife, or maxmana")
         }
         val value = parts[2].toIntOrNull()
-            ?: throw IllegalArgumentException("Value must be a number from 0 to 9999")
-        require(value in 0..9999) { "Value must be from 0 to 9999" }
+            ?: throw IllegalArgumentException("Value must be a number from 0 to 999")
+        require(value in 0..999) { "Value must be from 0 to 999" }
         return Result(
             listOf(Cheat(characterIndex * 4 + statIndex, formatCode(address, value))),
             false,
@@ -211,7 +212,9 @@ object RingsConsoleCommands {
         "            baseGameScreenViewModel.loadGame(\n                applicationContext,\n                game,\n                systemCoreConfig,\n                gameLoader,\n                intent.getBooleanExtra(EXTRA_LOAD_SAVE, false),\n            )\n            // Disable the original game's random, unavoidable Void party wipe.\n            // The game view can appear shortly after loadGame returns, so wait for\n            // the actual emulator surface instead of silently skipping the patch.\n            repeat(100) {\n                val retroView = baseGameScreenViewModel.retroGameView.retroGameView\n                if (retroView != null) {\n                    // Patch only the core's in-memory ROM copy, never the user's file.\n                    retroView.setCheat(24, true, \"012072:4E75\")\n                    displayToast(\"Void protection active\")\n                    return@launch\n                }\n                delay(100)\n            }\n            displayToast(\"Void protection could not start\")\n",
     )
     marker = "    override fun onActivityResult(\n"
-    method = r'''    private fun applyRingsConsoleCommand(command: String) {
+    method = r'''    private val ringsConsoleCodes = mutableMapOf<Int, String>()
+
+    private fun applyRingsConsoleCommand(command: String) {
         val retroView = baseGameScreenViewModel.retroGameView.retroGameView
         if (retroView == null) {
             displayToast("Console is not ready")
@@ -220,10 +223,17 @@ object RingsConsoleCommands {
         runCatching {
             val result = RingsConsoleCommands.parse(command)
             if (result.disableAll) {
-                repeat(24) { index -> retroView.setCheat(index, false, "FF0000:0000") }
+                ringsConsoleCodes.forEach { (index, code) ->
+                    retroView.setCheat(index, false, code)
+                }
+                ringsConsoleCodes.clear()
             } else {
                 result.cheats.forEach { cheat ->
+                    ringsConsoleCodes[cheat.index]?.let { previousCode ->
+                        retroView.setCheat(cheat.index, false, previousCode)
+                    }
                     retroView.setCheat(cheat.index, true, cheat.code)
+                    ringsConsoleCodes[cheat.index] = cheat.code
                 }
             }
             displayToast(result.message)
