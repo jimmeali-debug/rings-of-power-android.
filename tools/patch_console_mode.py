@@ -46,7 +46,7 @@ internal fun RingsConsoleDialog(
         title = { Text("Rings of Power Console") },
         text = {
             Column {
-                Text("Examples: buc life 500, slash mana 500, gold 30000, god, off. Void protection is automatic.")
+                Text("Examples: buc life 500, slash mana 500, gold 30000, god, off. Void protection is temporarily disabled for safe startup.")
                 OutlinedTextField(
                     value = command,
                     onValueChange = { command = it },
@@ -95,7 +95,7 @@ object RingsConsoleCommands {
     fun parse(raw: String): Result {
         val command = raw.trim().lowercase()
         if (command == "off" || command == "unlock") {
-            return Result(emptyList(), true, "All console cheats disabled; Void protection remains active")
+            return Result(emptyList(), true, "All console cheats disabled")
         }
         if (command.startsWith("gold ")) {
             val parts = command.split(Regex("\\s+")).filter { it.isNotEmpty() }
@@ -209,7 +209,7 @@ object RingsConsoleCommands {
     replace_once(
         activity,
         "            baseGameScreenViewModel.loadGame(\n                applicationContext,\n                game,\n                systemCoreConfig,\n                gameLoader,\n                intent.getBooleanExtra(EXTRA_LOAD_SAVE, false),\n            )\n",
-        "            baseGameScreenViewModel.loadGame(\n                applicationContext,\n                game,\n                systemCoreConfig,\n                gameLoader,\n                false, // Skip emulator auto-resume snapshots; cartridge SRAM still loads.\n            )\n            // Disable the original game's random, unavoidable Void party wipe.\n            // The game view can appear shortly after loadGame returns, so wait for\n            // the actual emulator surface instead of silently skipping the patch.\n            repeat(100) {\n                val retroView = baseGameScreenViewModel.retroGameView.retroGameView\n                if (retroView != null) {\n                    // Patch only the core's in-memory ROM copy, never the user's file.\n                    retroView.setCheat(24, true, \"012072:4E75\")\n                    displayToast(\"Void protection active\")\n                    return@launch\n                }\n                delay(100)\n            }\n            displayToast(\"Void protection could not start\")\n",
+        "            baseGameScreenViewModel.loadGame(\n                applicationContext,\n                game,\n                systemCoreConfig,\n                gameLoader,\n                false, // Skip emulator auto-resume snapshots; cartridge SRAM still loads.\n            )\n",
     )
     marker = "    override fun onActivityResult(\n"
     method = r'''    private val ringsConsoleCodes = mutableMapOf<Int, String>()
