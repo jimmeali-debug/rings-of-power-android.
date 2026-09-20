@@ -3,9 +3,10 @@ name: Build Rings of Power Android APK
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [ main, console-mode-alpha-5 ]
     paths:
       - '.github/workflows/build-apk.yml'
+      - 'tools/patch_console_mode.py'
 
 permissions:
   contents: read
@@ -15,6 +16,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
+      - name: Check out Rings of Power patches
+        uses: actions/checkout@v5
+
       - name: Check out pinned Lemuroid source
         run: |
           git clone --recursive https://github.com/Swordfish90/Lemuroid.git upstream
@@ -33,9 +37,9 @@ jobs:
       - name: Apply Rings of Power branding
         working-directory: upstream
         run: |
-          sed -i 's/applicationId = "com.swordfish.lemuroid"/applicationId = "com.jimmeali.ringsofpower"/' lemuroid-app/build.gradle.kts
-          sed -i 's/resValue("string", "lemuroid_name", "LemuroiDebug")/resValue("string", "lemuroid_name", "Rings of Power")/' lemuroid-app/build.gradle.kts
-          sed -i 's/versionNameSuffix = "-DEBUG"/versionNameSuffix = "-RINGS-ALPHA-4"/' lemuroid-app/build.gradle.kts
+          sed -i 's/applicationId = "com.swordfish.lemuroid"/applicationId = "com.jimmeali.ringsofpower.console"/' lemuroid-app/build.gradle.kts
+          sed -i 's/resValue("string", "lemuroid_name", "LemuroiDebug")/resValue("string", "lemuroid_name", "Rings of Power Console")/' lemuroid-app/build.gradle.kts
+          sed -i 's/versionNameSuffix = "-DEBUG"/versionNameSuffix = "-RINGS-CONSOLE-ALPHA-11"/' lemuroid-app/build.gradle.kts
           mkdir -p lemuroid-app/src/main/res/drawable
           cat > lemuroid-app/src/main/res/drawable/rings_launcher.xml <<'EOF'
           <vector xmlns:android="http://schemas.android.com/apk/res/android"
@@ -103,6 +107,9 @@ jobs:
           grep -q 'Play Rings of Power' lemuroid-app/src/main/java/com/swordfish/lemuroid/app/mobile/feature/home/HomeScreen.kt
           grep -q 'bottomBar = { }' lemuroid-app/src/main/java/com/swordfish/lemuroid/app/mobile/feature/main/MainActivity.kt
 
+      - name: Add character stat console
+        run: python3 tools/patch_console_mode.py upstream
+
       - name: Keep Genesis core only
         working-directory: upstream
         run: |
@@ -112,6 +119,12 @@ jobs:
             ! -name 'libgenesis_plus_gx_libretro_android.so' \
             -delete
           test "$(find lemuroid-cores/bundled-cores/src/main/jniLibs -name 'libgenesis_plus_gx_libretro_android.so' | wc -l)" -ge 1
+
+      - name: Restore stable console signing key
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: rings-of-power-console-signing-v1
 
       - name: Build standalone APK
         working-directory: upstream
@@ -125,12 +138,12 @@ jobs:
           mkdir -p apk-output
           source_apk="$(find upstream/lemuroid-app/build/outputs/apk/freeBundle/debug -type f -name '*.apk' -print -quit)"
           test -n "$source_apk"
-          cp "$source_apk" apk-output/Rings-of-Power-Android-alpha-4.apk
+          cp "$source_apk" apk-output/Rings-of-Power-Console-alpha-11.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Rings-of-Power-Android-alpha-4
-          path: apk-output/Rings-of-Power-Android-alpha-4.apk
+          name: Rings-of-Power-Console-alpha-11
+          path: apk-output/Rings-of-Power-Console-alpha-11.apk
           if-no-files-found: error
           retention-days: 30
